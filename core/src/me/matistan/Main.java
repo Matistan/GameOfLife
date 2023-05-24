@@ -46,7 +46,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         sx = 0;
         sy = 0;
         time = 0;
-        delta = 0.3;
+        delta = 1;
         generation = 0;
         playing = false;
         neighbors = 0;
@@ -92,9 +92,11 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         font.draw(batch, "mouse X: " + mouseX+" mouse Y: "+mouseY, 0, SCREEN_HEIGHT - 5 - 6*font.getCapHeight());
         if(playing) {
             time += delta;
-            if((time - delta) % 1 > time % 1) {
-                generation += 1;
-                nextStep();
+            if(Math.floor(time - delta) < Math.floor(time)) {
+                generation += Math.ceil(delta);
+                for(int i = 0; i < Math.ceil(delta); i++) {
+                    nextStep();
+                }
             }
         }
         if(!Gdx.input.isButtonPressed(Input.Buttons.LEFT) || (mouseX < 1100 && mouseY < 100)) {
@@ -256,7 +258,6 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         isButtonPreviouslyClicked = Gdx.input.isButtonPressed(Input.Buttons.LEFT);
     }
 public void nextStep() {
-    tempCells.clear();
     for(Point p: cells) {
         for(int i = -1; i < 2; i++) {
             for(int j = -1; j < 2; j++) {
@@ -270,8 +271,8 @@ public void nextStep() {
                         }
                     }
                     if(neighbors == 2 || neighbors == 3) {
-                        if(!tempCells.contains(new Point((int) (p.getX()), (int) (p.getY())))) {
-                            tempCells.add(new Point((int) (p.getX()), (int) (p.getY())));
+                        if(!tempCells.contains(p)) {
+                            tempCells.add(p);
                         }
                     }
                 } else if(!cells.contains(new Point((int) (p.getX() + i), (int) (p.getY() + j))) && !tempCells.contains(new Point((int) (p.getX() + i), (int) (p.getY() + j)))) {
