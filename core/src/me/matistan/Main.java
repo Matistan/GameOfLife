@@ -90,7 +90,6 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         font.draw(batch, "zoom: "+zoom, 0, SCREEN_HEIGHT - 5 - 4*font.getCapHeight());
         font.draw(batch, "generation: " + generation, 0, SCREEN_HEIGHT - 5 - 2*font.getCapHeight());
         font.draw(batch, "mouse X: " + mouseX+" mouse Y: "+mouseY, 0, SCREEN_HEIGHT - 5 - 6*font.getCapHeight());
-        font.draw(batch, "startcells.size: " + startCells.size()+" cells.size: "+cells.size() + " tempcells.size: " + tempCells.size(), 0, SCREEN_HEIGHT - 5 - 8*font.getCapHeight());
         if(playing) {
             time += delta;
             if((time - delta) % 1 > time % 1) {
@@ -256,49 +255,6 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         stage.draw();
         isButtonPreviouslyClicked = Gdx.input.isButtonPressed(Input.Buttons.LEFT);
     }
-
-//    public void nextStep() {
-//        tempCells.clear();
-//        neighbors = 0;
-//        for(Point p: cells) {
-//            for(int i = -1; i < 2; i++) {
-//                for(int j = -1; j < 2; j++) {
-//                    if(i == 0 && j == 0) {
-//                        neighbors = 0;
-//                        for(int k = -1; k < 2; k++) {
-//                            for(int l = -1; l < 2; l++) {
-//                                if((k != 0 || l != 0) && cells.contains(new Point((int) (p.getX() + i + k), (int) (p.getY() + j + l)))) {
-//                                    neighbors += 1;
-//                                }
-//                            }
-//                        }
-//                        if(neighbors >= 2 && neighbors <= 3) {
-//                            if(!tempCells.contains(new Point((int) (p.getX() + i), (int) (p.getY() + j)))) {
-//                                tempCells.add(new Point(new Point((int) (p.getX() + i), (int) (p.getY() + j))));
-//                            }
-//                        }
-//                    } else if(!cells.contains(new Point((int) (p.getX() + i), (int) (p.getY() + j)))) {
-//                        neighbors = 0;
-//                        for(int k = -1; k < 2; k++) {
-//                            for (int l = -1; l < 2; l++) {
-//                                if((k != 0 || l != 0) && cells.contains(new Point((int) (p.getX() + i + k), (int) (p.getY() + j + l)))) {
-//                                    neighbors += 1;
-//                                }
-//                            }
-//                        }
-//                        if(neighbors == 3) {
-//                            if(!tempCells.contains(new Point((int) (p.getX() + i), (int) (p.getY() + j)))) {
-//                                tempCells.add(new Point(new Point((int) (p.getX() + i), (int) (p.getY() + j))));
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//        cells.clear();
-//        cells.addAll(tempCells);
-//        tempCells.clear();
-//    }
 public void nextStep() {
     tempCells.clear();
     for(Point p: cells) {
@@ -318,7 +274,7 @@ public void nextStep() {
                             tempCells.add(new Point((int) (p.getX()), (int) (p.getY())));
                         }
                     }
-                } else if(!cells.contains(new Point((int) (p.getX() + i), (int) (p.getY() + j)))) {
+                } else if(!cells.contains(new Point((int) (p.getX() + i), (int) (p.getY() + j))) && !tempCells.contains(new Point((int) (p.getX() + i), (int) (p.getY() + j)))) {
                     for(int k = -1; k < 2; k++) {
                         for (int l = -1; l < 2; l++) {
                             if((k != 0 || l != 0) && cells.contains(new Point((int) (p.getX() + i + k), (int) (p.getY() + j + l)))) {
@@ -327,9 +283,7 @@ public void nextStep() {
                         }
                     }
                     if(neighbors == 3) {
-                        if(!tempCells.contains(new Point((int) (p.getX() + i), (int) (p.getY() + j)))) {
-                            tempCells.add(new Point((int) (p.getX() + i), (int) (p.getY() + j)));
-                        }
+                        tempCells.add(new Point((int) (p.getX() + i), (int) (p.getY() + j)));
                     }
                 }
             }
