@@ -22,12 +22,12 @@ public class Main extends ApplicationAdapter implements InputProcessor {
     public static final int SCREEN_HEIGHT = 972;
     SpriteBatch batch;
     BitmapFont font;
-    int  cx, cy, sx, sy, mouseX, mouseY, clickedX, clickedY, generation, neighbors;
-    double time, delta, zoom;
+    int  cx, cy, sx, sy, mouseX, mouseY, clickedX, clickedY, generation, zoom;
+    double time, speed;
     boolean isButtonPreviouslyClicked, playing;
     Texture start, next, restart, textField, load, zoomIn, zoomOut, delete, export;
     TextureRegion live, selected;
-    List<Point> startCells, cells, tempCells;
+    List<Point> startCells, cells, tempCells, checked;
     TextField loadField;
     Skin skin;
     Stage stage;
@@ -38,6 +38,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         startCells = new LinkedList<>();
         cells = new LinkedList<>();
         tempCells = new LinkedList<>();
+        checked = new LinkedList<>();
         batch = new SpriteBatch();
         font = new BitmapFont();
         zoom = 128;
@@ -46,10 +47,9 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         sx = 0;
         sy = 0;
         time = 0;
-        delta = 1;
+        speed = 1;
         generation = 0;
         playing = false;
-        neighbors = 0;
         isButtonPreviouslyClicked = false;
         clickedX = 0;
         clickedY = 0;
@@ -76,8 +76,8 @@ public class Main extends ApplicationAdapter implements InputProcessor {
 
     @Override
     public void render () {
-        selected = new TextureRegion(new Texture("selected.png"), (int) zoom, (int) zoom);
-        live = new TextureRegion(new Texture("live.png"), (int) zoom, (int) zoom);
+        selected = new TextureRegion(new Texture("selected.png"), zoom, zoom);
+        live = new TextureRegion(new Texture("live.png"), zoom, zoom);
         mouseX = Gdx.input.getX();
         mouseY = SCREEN_HEIGHT - Gdx.input.getY() - 1;
         if(Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
@@ -86,15 +86,15 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         }
         ScreenUtils.clear(0, 0, 0, 1);
         batch.begin();
-        font.draw(batch, "X: " + (cx - realMod(cx, (int) zoom)) / zoom + " Y: " + (cy - realMod(cy, (int) zoom)) / zoom, 0, SCREEN_HEIGHT - 5);
-        font.draw(batch, "zoom: "+zoom, 0, SCREEN_HEIGHT - 5 - 4*font.getCapHeight());
+        font.draw(batch, "X: " + (cx - realMod(cx, zoom)) / zoom + " Y: " + (cy - realMod(cy, zoom)) / zoom, 0, SCREEN_HEIGHT - 5);
         font.draw(batch, "generation: " + generation, 0, SCREEN_HEIGHT - 5 - 2*font.getCapHeight());
+        font.draw(batch, "zoom: "+zoom, 0, SCREEN_HEIGHT - 5 - 4*font.getCapHeight());
         font.draw(batch, "mouse X: " + mouseX+" mouse Y: "+mouseY, 0, SCREEN_HEIGHT - 5 - 6*font.getCapHeight());
         if(playing) {
-            time += delta;
-            if(Math.floor(time - delta) < Math.floor(time)) {
-                generation += Math.ceil(delta);
-                for(int i = 0; i < Math.ceil(delta); i++) {
+            time += speed;
+            if(Math.floor(time - speed) < Math.floor(time)) {
+                generation += Math.floor(time) - Math.floor(time - speed);
+                for(int i = 0; i < Math.floor(time) - Math.floor(time - speed); i++) {
                     nextStep();
                 }
             }
@@ -106,7 +106,11 @@ public class Main extends ApplicationAdapter implements InputProcessor {
             }
         }
         for(Point p:cells) {
-            batch.draw(live, (float) (p.getX() * zoom + (mouseX - cx)), (float) (p.getY() * zoom + (mouseY - cy)));
+            float x = (float) (p.getX() * zoom + (mouseX - cx));
+            float y = (float) (p.getY() * zoom + (mouseY - cy));
+            if(x + zoom > 0 && x < SCREEN_WIDTH && y + zoom > 0 && y < SCREEN_HEIGHT) {
+                batch.draw(live, x, y);
+            }
         }
         sx = mouseX;
         sy = mouseY;
@@ -157,6 +161,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
                 generation = 0;
                 cells.clear();
                 cells.addAll(startCells);
+                time = 0;
             }
         } else {
             restart = new Texture("restart.png");
@@ -258,41 +263,41 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         isButtonPreviouslyClicked = Gdx.input.isButtonPressed(Input.Buttons.LEFT);
     }
 public void nextStep() {
+    tempCells.clear();
+    checked.clear();
     for(Point p: cells) {
+        int neighbors = neighbors(p);
+        if((neighbors == 2 || neighbors == 3) && !tempCells.contains(p)) {
+            tempCells.add(p);
+        }
         for(int i = -1; i < 2; i++) {
             for(int j = -1; j < 2; j++) {
-                neighbors = 0;
                 if(i == 0 && j == 0) {
-                    for(int k = -1; k < 2; k++) {
-                        for(int l = -1; l < 2; l++) {
-                            if((k != 0 || l != 0) && cells.contains(new Point((int) (p.getX() + k), (int) (p.getY() + l)))) {
-                                neighbors += 1;
-                            }
-                        }
+                    continue;
+                }
+                Point point = new Point((int) (p.getX() + i), (int) (p.getY() + j));
+                if(!cells.contains(point) && !tempCells.contains(point) && !checked.contains(point)) {
+                    if(neighbors(point) == 3) {
+                        tempCells.add(point);
                     }
-                    if(neighbors == 2 || neighbors == 3) {
-                        if(!tempCells.contains(p)) {
-                            tempCells.add(p);
-                        }
-                    }
-                } else if(!cells.contains(new Point((int) (p.getX() + i), (int) (p.getY() + j))) && !tempCells.contains(new Point((int) (p.getX() + i), (int) (p.getY() + j)))) {
-                    for(int k = -1; k < 2; k++) {
-                        for (int l = -1; l < 2; l++) {
-                            if((k != 0 || l != 0) && cells.contains(new Point((int) (p.getX() + i + k), (int) (p.getY() + j + l)))) {
-                                neighbors += 1;
-                            }
-                        }
-                    }
-                    if(neighbors == 3) {
-                        tempCells.add(new Point((int) (p.getX() + i), (int) (p.getY() + j)));
-                    }
+                    checked.add(point);
                 }
             }
         }
     }
     cells.clear();
     cells.addAll(tempCells);
-    tempCells.clear();
+}
+int neighbors(Point p) {
+        int neighbors = 0;
+    for(int i = -1; i < 2; i++) {
+        for (int j = -1; j < 2; j++) {
+            if((i != 0 || j != 0) && cells.contains(new Point((int) (p.getX() + i), (int) (p.getY() + j)))) {
+                neighbors++;
+            }
+        }
+    }
+    return neighbors;
 }
 
     float realMod(float a, double b) {
