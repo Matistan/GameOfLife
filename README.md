@@ -1,6 +1,6 @@
 # Game of Life
 
-Simple app that simulates the infamous Conway's Game of Life.
+Simple app that simulates the famous Conway's Game of Life.
 
 ## How does it work?
 
