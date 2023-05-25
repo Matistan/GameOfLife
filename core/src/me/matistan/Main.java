@@ -47,7 +47,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         sx = 0;
         sy = 0;
         time = 0;
-        speed = 1;
+        speed = 0.3;
         generation = 0;
         playing = false;
         isButtonPreviouslyClicked = false;
