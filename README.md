@@ -6,6 +6,7 @@ Simple app that simulates the famous Conway's Game of Life.
 
 Click some cells to make them alive.
 Then, click the start button to see how it will evolve through the next generations.
+The grid is infinite, so don't worry.
 
 ## How to download?
 
